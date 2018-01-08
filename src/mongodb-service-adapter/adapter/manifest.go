@@ -50,8 +50,11 @@ func (m ManifestGenerator) GenerateManifest(
 
 	var previousMongoProperties map[interface{}]interface{}
 
+	var previousMongoVersion string
+
 	if previousManifest != nil {
 		previousMongoProperties = mongoPlanProperties(*previousManifest)
+		previousMongoVersion = mongoOldVersion(*previousManifest)
 	}
 
 	adminPassword, err := passwordForMongoServer(previousMongoProperties)
@@ -64,7 +67,7 @@ func (m ManifestGenerator) GenerateManifest(
 		return bosh.BoshManifest{}, err
 	}
 
-	group, err := groupForMongoServer(id, oc, previousMongoProperties)
+	group, err := groupForMongoServer(id, oc, previousMongoVersion, previousMongoProperties)
 	if err != nil {
 		return bosh.BoshManifest{}, fmt.Errorf("could not create new group (%s)", err.Error())
 	}
@@ -300,6 +303,10 @@ func mongoPlanProperties(manifest bosh.BoshManifest) map[interface{}]interface{}
 	return manifest.InstanceGroups[1].Properties["mongo_ops"].(map[interface{}]interface{})
 }
 
+func mongoOldVersion(manifest bosh.BoshManifest) string {
+	return manifest.Releases[0].Version
+}
+
 func passwordForMongoServer(previousManifestProperties map[interface{}]interface{}) (string, error) {
 	if previousManifestProperties != nil {
 		return previousManifestProperties["admin_password"].(string), nil
@@ -316,8 +323,10 @@ func idForMongoServer(previousManifestProperties map[interface{}]interface{}) (s
 	return GenerateString(8)
 }
 
-func groupForMongoServer(mongoID string, oc *OMClient, previousManifestProperties map[interface{}]interface{}) (Group, error) {
-	if previousManifestProperties != nil {
+func groupForMongoServer(mongoID string, oc *OMClient, previousMongoVersion string, previousManifestProperties map[interface{}]interface{}) (Group, error) {
+	if previousManifestProperties != nil && previousMongoVersion == "0.8.4" {
+		return oc.CreateGroup(previousManifestProperties["group_id"].(string))
+	} else if previousManifestProperties != nil {
 		return oc.GetGroup(previousManifestProperties["group_id"].(string))
 	}
 
