@@ -20,6 +20,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/hashicorp/go-version"
+  packages = ["."]
+  revision = "4fe82ae3040f80a03d04d2cccb5606a626b8e1ee"
+
+[[projects]]
+  branch = "master"
   name = "github.com/pivotal-cf/brokerapi"
   packages = [
     ".",
@@ -63,6 +69,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "105f50b66840a268836ed281bad72c2b8570a175db60b6db85272b96c331777a"
+  inputs-digest = "58d8786a77454446c409abed04bb65e3361d8825c0bc730274be0f48bcdf6d19"
   solver-name = "gps-cdcl"
   solver-version = 1

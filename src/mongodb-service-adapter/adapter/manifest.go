@@ -5,6 +5,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/hashicorp/go-version"
 	"github.com/pivotal-cf/on-demand-services-sdk/bosh"
 	"github.com/pivotal-cf/on-demand-services-sdk/serviceadapter"
 )
@@ -324,9 +325,19 @@ func idForMongoServer(previousManifestProperties map[interface{}]interface{}) (s
 }
 
 func groupForMongoServer(mongoID string, oc *OMClient, previousMongoVersion string, previousManifestProperties map[interface{}]interface{}) (Group, error) {
-	if previousManifestProperties != nil && previousMongoVersion == "0.8.4" {
-		return oc.CreateGroup(previousManifestProperties["group_id"].(string))
-	} else if previousManifestProperties != nil {
+	if previousManifestProperties != nil {
+		v1, err := version.NewVersion(previousMongoVersion)
+		if err != nil {
+			fmt.Errorf("error for version: %s", err)
+		}
+		constraints, err := version.NewConstraint("<= 0.8.4")
+		if err != nil {
+			fmt.Errorf("error for constraint: %s", err)
+		}
+		if constraints.Check(v1) {
+			return oc.CreateGroup(previousManifestProperties["group_id"].(string))
+		}
+
 		return oc.GetGroup(previousManifestProperties["group_id"].(string))
 	}
 
